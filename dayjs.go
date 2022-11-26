@@ -3,6 +3,7 @@ package dayjs
 import (
 	_ "embed"
 	"fmt"
+	"math"
 	"sync"
 	"time"
 
@@ -59,6 +60,8 @@ func (d *DayJS) clearGlobal(name string) error {
 	return nil
 }
 
+var ParseErr = fmt.Errorf("failed to parse date")
+
 func (d *DayJS) Parse(date string) (time.Time, error) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -68,9 +71,12 @@ func (d *DayJS) Parse(date string) (time.Time, error) {
 	if err != nil {
 		return time.Time{}, err
 	}
-	resultDate := result.Int64()
+	resultDate := result.Float64()
 	result.Free()
-	return time.UnixMilli(resultDate), nil
+	if math.IsNaN(resultDate) {
+		return time.Time{}, ParseErr
+	}
+	return time.UnixMilli(int64(resultDate)), nil
 }
 
 func (d *DayJS) ParseFormat(date, format string) (time.Time, error) {
@@ -84,9 +90,12 @@ func (d *DayJS) ParseFormat(date, format string) (time.Time, error) {
 	if err != nil {
 		return time.Time{}, err
 	}
-	resultDate := result.Int64()
+	resultDate := result.Float64()
 	result.Free()
-	return time.UnixMilli(resultDate), nil
+	if math.IsNaN(resultDate) {
+		return time.Time{}, ParseErr
+	}
+	return time.UnixMilli(int64(resultDate)), nil
 }
 
 func (d *DayJS) Format(t time.Time, format string) (string, error) {
