@@ -39,4 +39,5 @@ MIT
 
 ## Author
 
-syumai
+* syumai
+* [iamkun](https://github.com/iamkun) (original author of day.js)
