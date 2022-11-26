@@ -80,11 +80,11 @@ func TestDayJS_ParseFormat(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got, err := d.ParseFormat(tt.date, tt.format)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Parse() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("ParseFormat() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Parse() got = %v, want %v", got, tt.want)
+				t.Errorf("ParseFormat() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
