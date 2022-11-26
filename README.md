@@ -1,0 +1,41 @@
+# go-dayjs
+
+* `go-dayjs` is a wrapper of [day.js](https://day.js.org/) running on quickjs.
+  - for quickjs binding, this package is using [elsaland/quickjs](https://github.com/elsaland/quickjs).
+
+## Installation
+
+```
+go get github.com/syumai/go-dayjs
+```
+
+## Usage
+
+```go
+djs, _ := dayjs.New()
+defer djs.Free()
+
+{
+  result, _ := djs.Parse("2022-01-25")
+  fmt.Println(result) // 2021-01-02 00:00:00 +0900 JST
+}
+
+{
+  result, _ = djs.ParseFormat("03-01-2020", "DD-MM-YYYY")
+  fmt.Println(result) // 2020-01-02 00:00:00 +0900 JST
+}
+
+{
+  now := time.Now()
+  result, _ = djs.Format(now, "YYYY-MM-DD HH:mm:ss")
+  fmt.Println(result) // 2022-11-26 23:57:21
+}
+```
+
+## License
+
+MIT
+
+## Author
+
+syumai
