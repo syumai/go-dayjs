@@ -60,7 +60,7 @@ func (d *DayJS) clearGlobal(name string) error {
 	return nil
 }
 
-var ParseErr = fmt.Errorf("failed to parse date")
+var ErrParseDate = fmt.Errorf("failed to parse date")
 
 func (d *DayJS) Parse(date string) (time.Time, error) {
 	d.mu.Lock()
@@ -74,7 +74,7 @@ func (d *DayJS) Parse(date string) (time.Time, error) {
 	resultDate := result.Float64()
 	result.Free()
 	if math.IsNaN(resultDate) {
-		return time.Time{}, ParseErr
+		return time.Time{}, ErrParseDate
 	}
 	return time.UnixMilli(int64(resultDate)), nil
 }
@@ -93,7 +93,7 @@ func (d *DayJS) ParseFormat(date, format string) (time.Time, error) {
 	resultDate := result.Float64()
 	result.Free()
 	if math.IsNaN(resultDate) {
-		return time.Time{}, ParseErr
+		return time.Time{}, ErrParseDate
 	}
 	return time.UnixMilli(int64(resultDate)), nil
 }
