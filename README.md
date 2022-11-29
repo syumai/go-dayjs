@@ -1,8 +1,9 @@
 # go-dayjs
 
 * `go-dayjs` is a wrapper of [day.js](https://day.js.org/) running on quickjs.
-  - for quickjs binding, this package is using [elsaland/quickjs](https://github.com/elsaland/quickjs).
+  - This package is using [quickjs Go binding](https://github.com/syumai/quickjs).
 * This package requires cgo.
+* Make sure to call runtime.LockOSThread() to ensure that QuickJS always operates in the exact same thread.
 
 ## Installation
 
