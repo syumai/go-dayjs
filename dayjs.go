@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/elsaland/quickjs"
+	"github.com/syumai/quickjs"
 )
 
 //go:embed assets/dayjs.min.js
