@@ -45,5 +45,14 @@ func run() error {
 		}
 		fmt.Println(result)
 	}
+
+	{
+		now := time.Now()
+		result, err := djs.Format(now, "X")
+		if err != nil {
+			return err
+		}
+		fmt.Println(result)
+	}
 	return nil
 }
