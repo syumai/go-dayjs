@@ -7,56 +7,37 @@ import (
 	"sync"
 	"time"
 
-	"github.com/syumai/quickjs"
+	"github.com/dop251/goja"
 )
 
 //go:embed assets/dayjs.min.js
 var dayjsCode string
 
 type DayJS struct {
-	qjsRuntime *quickjs.Runtime
-	qjsCtx     *quickjs.Context
-	global     *quickjs.Value
-	free       func()
-	mu         sync.Mutex
+	vm     *goja.Runtime
+	global *goja.Object
+	free   func()
+	mu     sync.Mutex
 }
 
 func New() (*DayJS, error) {
-	qjsRuntime := quickjs.NewRuntime()
-	qjsCtx := qjsRuntime.NewContext()
-	global := qjsCtx.Globals()
-	free := func() {
-		qjsCtx.Free()
-		qjsRuntime.Free()
-	}
-	dayjsResult, err := qjsCtx.Eval(dayjsCode)
+	vm := goja.New()
+	_, err := vm.RunString(dayjsCode)
 	if err != nil {
-		free()
 		return nil, err
 	}
-	dayjsResult.Free()
-	var freeOnce sync.Once
 	return &DayJS{
-		qjsRuntime: &qjsRuntime,
-		qjsCtx:     qjsCtx,
-		global:     &global,
-		free: func() {
-			freeOnce.Do(free)
-		},
+		vm:     vm,
+		global: vm.GlobalObject(),
 	}, nil
-}
-
-func (d *DayJS) Free() {
-	d.free()
 }
 
 // this method must be called in locked method.
 func (d *DayJS) clearGlobal(name string) error {
-	result, err := d.qjsCtx.Eval(fmt.Sprintf("delete globalThis.%s", name))
+	_, err := d.vm.RunString(fmt.Sprintf("delete globalThis.%s", name))
 	if err != nil {
 		return err
 	}
-	result.Free()
 	return nil
 }
 
@@ -65,14 +46,16 @@ var ErrParseDate = fmt.Errorf("failed to parse date")
 func (d *DayJS) Parse(date string) (time.Time, error) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
-	d.global.Set("date", d.qjsCtx.String(date))
-	defer d.clearGlobal("date")
-	result, err := d.qjsCtx.Eval("Number(dayjs(date).toDate())")
+	err := d.global.Set("date", date)
 	if err != nil {
 		return time.Time{}, err
 	}
-	resultDate := result.Float64()
-	result.Free()
+	defer d.clearGlobal("date")
+	result, err := d.vm.RunString("Number(dayjs(date).toDate())")
+	if err != nil {
+		return time.Time{}, err
+	}
+	resultDate := result.ToFloat()
 	if math.IsNaN(resultDate) {
 		return time.Time{}, ErrParseDate
 	}
@@ -82,16 +65,19 @@ func (d *DayJS) Parse(date string) (time.Time, error) {
 func (d *DayJS) ParseFormat(date, format string) (time.Time, error) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
-	d.global.Set("date", d.qjsCtx.String(date))
+	if err := d.global.Set("date", date); err != nil {
+		return time.Time{}, err
+	}
 	defer d.clearGlobal("date")
-	d.global.Set("format", d.qjsCtx.String(format))
+	if err := d.global.Set("format", format); err != nil {
+		return time.Time{}, err
+	}
 	defer d.clearGlobal("format")
-	result, err := d.qjsCtx.Eval("Number(dayjs(date, format).toDate())")
+	result, err := d.vm.RunString("Number(dayjs(date, format).toDate())")
 	if err != nil {
 		return time.Time{}, err
 	}
-	resultDate := result.Float64()
-	result.Free()
+	resultDate := result.ToFloat()
 	if math.IsNaN(resultDate) {
 		return time.Time{}, ErrParseDate
 	}
@@ -101,15 +87,18 @@ func (d *DayJS) ParseFormat(date, format string) (time.Time, error) {
 func (d *DayJS) Format(t time.Time, format string) (string, error) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
-	d.global.Set("date", d.qjsCtx.Int64(t.UnixMilli()))
+	if err := d.global.Set("date", t.UnixMilli()); err != nil {
+		return "", err
+	}
 	defer d.clearGlobal("date")
-	d.global.Set("format", d.qjsCtx.String(format))
+	if err := d.global.Set("format", format); err != nil {
+		return "", err
+	}
 	defer d.clearGlobal("format")
-	result, err := d.qjsCtx.Eval("dayjs(date).format(format)")
+	result, err := d.vm.RunString("dayjs(date).format(format)")
 	if err != nil {
 		return "", err
 	}
 	resultStr := result.String()
-	result.Free()
 	return resultStr, nil
 }

@@ -11,7 +11,6 @@ func TestDayJS_Parse(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer d.Free()
 	tests := map[string]struct {
 		date    string
 		want    time.Time
@@ -51,7 +50,6 @@ func TestDayJS_ParseFormat(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer d.Free()
 	tests := map[string]struct {
 		date    string
 		format  string
@@ -95,7 +93,6 @@ func TestDayJS_Format(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer d.Free()
 	date := time.Date(2022, 1, 2, 3, 4, 5, 0, time.Local)
 	format := "YYYY-MM-DD HH:mm:ss"
 	want := "2022-01-02 03:04:05"
