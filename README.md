@@ -12,23 +12,30 @@ go get github.com/syumai/go-dayjs
 ## Usage
 
 ```go
-djs, _ := dayjs.New()
-defer djs.Free()
-
 {
-  result, _ := djs.Parse("2022-01-25")
+  d, _ := dayjs.Parse("2021-01-02")
+  result, _ := d.ToTime()
   fmt.Println(result) // 2021-01-02 00:00:00 +0900 JST
 }
 
 {
-  result, _ = djs.ParseFormat("03-01-2020", "DD-MM-YYYY")
-  fmt.Println(result) // 2020-01-02 00:00:00 +0900 JST
+  d, _ := dayjs.ParseFormat("02-01-2020", "DD-MM-YYYY")
+  result, _ := d.ToTime()
+  fmt.Println(result) // 2021-01-02 00:00:00 +0900 JST
 }
 
 {
   now := time.Now()
-  result, _ = djs.Format(now, "YYYY-MM-DD HH:mm:ss")
-  fmt.Println(result) // 2022-11-26 23:57:21
+  d, _ := dayjs.FromTime(now)
+  result, _ := d.Format("YYYY-MM-DD HH:mm:ss")
+  fmt.Println(result) // 2022-12-04 21:08:55
+}
+
+{
+  now := time.Now()
+  d, _ := dayjs.FromTime(now)
+  result, _ := d.Format("X")
+  fmt.Println(result) // 1670155735
 }
 ```
 

@@ -15,14 +15,12 @@ func main() {
 }
 
 func run() error {
-	djs, err := dayjs.New()
-	if err != nil {
-		return err
-	}
-	defer djs.Free()
-
 	{
-		result, err := djs.Parse("2021-01-02")
+		d, err := dayjs.Parse("2021-01-02")
+		if err != nil {
+			return err
+		}
+		result, err := d.ToTime()
 		if err != nil {
 			return err
 		}
@@ -30,7 +28,11 @@ func run() error {
 	}
 
 	{
-		result, err := djs.ParseFormat("02-01-2020", "DD-MM-YYYY")
+		d, err := dayjs.ParseFormat("02-01-2020", "DD-MM-YYYY")
+		if err != nil {
+			return err
+		}
+		result, err := d.ToTime()
 		if err != nil {
 			return err
 		}
@@ -39,7 +41,11 @@ func run() error {
 
 	{
 		now := time.Now()
-		result, err := djs.Format(now, "YYYY-MM-DD HH:mm:ss")
+		d, err := dayjs.FromTime(now)
+		if err != nil {
+			return err
+		}
+		result, err := d.Format("YYYY-MM-DD HH:mm:ss")
 		if err != nil {
 			return err
 		}
@@ -48,7 +54,11 @@ func run() error {
 
 	{
 		now := time.Now()
-		result, err := djs.Format(now, "X")
+		d, err := dayjs.FromTime(now)
+		if err != nil {
+			return err
+		}
+		result, err := d.Format("X")
 		if err != nil {
 			return err
 		}

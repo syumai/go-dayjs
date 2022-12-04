@@ -7,10 +7,6 @@ import (
 )
 
 func TestDayJS_Parse(t *testing.T) {
-	d, err := New()
-	if err != nil {
-		t.Fatal(err)
-	}
 	tests := map[string]struct {
 		date    string
 		want    time.Time
@@ -33,23 +29,22 @@ func TestDayJS_Parse(t *testing.T) {
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := d.Parse(tt.date)
+			d, err := Parse(tt.date)
+			if err != nil {
+				t.Fatal(err)
+			}
+			got, err := d.ToTime()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Parse() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				t.Fatalf("Parse() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Parse() got = %v, want %v", got, tt.want)
+				t.Fatalf("Parse() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
 func TestDayJS_ParseFormat(t *testing.T) {
-	d, err := New()
-	if err != nil {
-		t.Fatal(err)
-	}
 	tests := map[string]struct {
 		date    string
 		format  string
@@ -76,27 +71,30 @@ func TestDayJS_ParseFormat(t *testing.T) {
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := d.ParseFormat(tt.date, tt.format)
+			d, err := ParseFormat(tt.date, tt.format)
+			if err != nil {
+				t.Fatal(err)
+			}
+			got, err := d.ToTime()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ParseFormat() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				t.Fatalf("ParseFormat() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ParseFormat() got = %v, want %v", got, tt.want)
+				t.Fatalf("ParseFormat() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestDayJS_Format(t *testing.T) {
-	d, err := New()
-	if err != nil {
-		t.Fatal(err)
-	}
+func TestDayJS_FromTime_Format(t *testing.T) {
 	date := time.Date(2022, 1, 2, 3, 4, 5, 0, time.Local)
 	format := "YYYY-MM-DD HH:mm:ss"
 	want := "2022-01-02 03:04:05"
-	got, err := d.Format(date, format)
+	d, err := FromTime(date)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := d.Format(format)
 	if err != nil {
 		t.Fatal(err)
 	}
