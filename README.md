@@ -1,6 +1,6 @@
 # go-dayjs
 
-* `go-dayjs` is a wrapper of [day.js](https://day.js.org/) running on QuickJS.
+* `go-dayjs` is a wrapper of [day.js](https://day.js.org/).
   - This package is using [goja](https://github.com/dop251/goja).
 
 ## Installation
