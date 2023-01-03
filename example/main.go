@@ -45,7 +45,20 @@ func run() error {
 		if err != nil {
 			return err
 		}
+
+		if err := d.TimeZone("Asia/Tokyo"); err != nil {
+			return err
+		}
 		result, err := d.Format("YYYY-MM-DD HH:mm:ss")
+		if err != nil {
+			return err
+		}
+		fmt.Println(result)
+
+		if err := d.TimeZone("Europe/London"); err != nil {
+			return err
+		}
+		result, err = d.Format("YYYY-MM-DD HH:mm:ss")
 		if err != nil {
 			return err
 		}

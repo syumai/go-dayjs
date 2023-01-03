@@ -94,6 +94,10 @@ func TestDayJS_FromTime_Format(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	err = d.TimeZone("America/Toronto")
+	if err != nil {
+		t.Fatal(err)
+	}
 	got, err := d.Format(format)
 	if err != nil {
 		t.Fatal(err)

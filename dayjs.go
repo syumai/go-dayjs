@@ -13,6 +13,9 @@ import (
 //go:embed assets/dayjs.min.js
 var dayjsCode string
 
+//go:embed assets/datetime-polyfill.min.js
+var dateTimeFormatPolyfill string
+
 var (
 	ErrInitializeDayJSVM = fmt.Errorf("failed to initialize DayJS VM")
 	ErrParseDate         = fmt.Errorf("failed to parse date")
@@ -22,12 +25,18 @@ var (
 type DayJS struct {
 	vm        *goja.Runtime
 	dayjsFunc goja.Callable
-	dayjsObj  *goja.Object
+	dayjsVal  goja.Value
 	mu        sync.Mutex
 }
 
 func newInstance() (*DayJS, error) {
 	vm := goja.New()
+	if _, err := vm.RunString("globalThis.window = globalThis;"); err != nil {
+		return nil, err
+	}
+	if _, err := vm.RunString(dateTimeFormatPolyfill); err != nil {
+		return nil, err
+	}
 	if _, err := vm.RunString(dayjsCode); err != nil {
 		return nil, err
 	}
@@ -51,7 +60,7 @@ func Parse(date string) (*DayJS, error) {
 	if err != nil {
 		return nil, err
 	}
-	d.dayjsObj = v.ToObject(d.vm)
+	d.dayjsVal = v
 	return d, nil
 }
 
@@ -64,7 +73,7 @@ func ParseFormat(date, format string) (*DayJS, error) {
 	if err != nil {
 		return nil, err
 	}
-	d.dayjsObj = v.ToObject(d.vm)
+	d.dayjsVal = v
 	return d, nil
 }
 
@@ -78,19 +87,37 @@ func FromTime(t time.Time) (*DayJS, error) {
 	if err != nil {
 		return nil, err
 	}
-	d.dayjsObj = v.ToObject(d.vm)
+	d.dayjsVal = v
 	return d, nil
+}
+
+// TimeZone sets time zone (e.g. "Asia/Tokyo") to current DayJS instance.
+// See: https://day.js.org/docs/en/timezone/timezone
+func (d *DayJS) TimeZone(timeZone string) error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	v := d.dayjsVal.ToObject(d.vm).Get("tz")
+	tzFunc, ok := goja.AssertFunction(v)
+	if !ok {
+		return ErrUnexpectedValue
+	}
+	dayjsVal, err := tzFunc(d.dayjsVal, d.vm.ToValue(timeZone))
+	if err != nil {
+		return err
+	}
+	d.dayjsVal = dayjsVal
+	return nil
 }
 
 func (d *DayJS) Format(format string) (string, error) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
-	v := d.dayjsObj.Get("format")
+	v := d.dayjsVal.ToObject(d.vm).Get("format")
 	formatFunc, ok := goja.AssertFunction(v)
 	if !ok {
 		return "", ErrUnexpectedValue
 	}
-	strValue, err := formatFunc(d.dayjsObj, d.vm.ToValue(format))
+	strValue, err := formatFunc(d.dayjsVal, d.vm.ToValue(format))
 	if err != nil {
 		return "", err
 	}
@@ -101,12 +128,12 @@ func (d *DayJS) Format(format string) (string, error) {
 func (d *DayJS) ToTime() (time.Time, error) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
-	v := d.dayjsObj.Get("toDate")
+	v := d.dayjsVal.ToObject(d.vm).Get("toDate")
 	toDateFunc, ok := goja.AssertFunction(v)
 	if !ok {
 		return time.Time{}, ErrUnexpectedValue
 	}
-	dateValue, err := toDateFunc(d.dayjsObj)
+	dateValue, err := toDateFunc(d.dayjsVal)
 	if err != nil {
 		return time.Time{}, err
 	}
