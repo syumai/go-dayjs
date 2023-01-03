@@ -102,3 +102,46 @@ func TestDayJS_FromTime_Format(t *testing.T) {
 		t.Fatalf("want: %s, got: %s", want, got)
 	}
 }
+
+func TestDayJS_Format_WithTimezone(t *testing.T) {
+	date := time.Date(2022, 1, 2, 3, 4, 5, 0, time.Local)
+	tests := []struct {
+		zone string
+		want string
+	}{
+		{
+			zone: "Asia/Tokyo",
+			want: "2022-01-02 03:04:05",
+		},
+		{
+			zone: "Europe/London",
+			want: "2022-01-01 18:04:05",
+		},
+	}
+	format := "YYYY-MM-DD HH:mm:ss"
+	local := time.Local
+	defer func() {
+		time.Local = local
+	}()
+	for _, tc := range tests {
+		t.Run(tc.zone, func(t *testing.T) {
+			l, err := time.LoadLocation(tc.zone)
+			if err != nil {
+				t.Fatal(err)
+			}
+			time.Local = l
+
+			d, err := FromTime(date)
+			if err != nil {
+				t.Fatal(err)
+			}
+			got, err := d.Format(format)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if tc.want != got {
+				t.Fatalf("want: %s, got: %s", tc.want, got)
+			}
+		})
+	}
+}

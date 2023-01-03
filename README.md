@@ -39,6 +39,19 @@ go get github.com/syumai/go-dayjs
 }
 ```
 
+* There is no timezone support.
+* If you want to use specific time zone, please overwrite your environment's `time.Local`.
+
+```go
+{
+  l, _ := time.LoadLocation("Asia/Tokyo")
+  time.Local = l
+  now := time.Now()
+  d, _ := dayjs.FromTime(now)
+  ...
+}
+```
+
 ## License
 
 MIT
